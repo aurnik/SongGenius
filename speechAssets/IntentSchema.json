@@ -1,0 +1,91 @@
+{
+  "intents": [
+    {
+      "intent": "ChooseOption",
+      "slots": [
+        {
+          "name": "Action",
+          "type": "ACTION"
+        }
+      ]
+    },
+    {
+      "intent": "DefineLyrics",
+      "slots": [
+        {
+          "name": "Artist",
+          "type": "ARTIST_NAME"
+        },
+        {
+          "name": "Lyrics",
+          "type": "LYRICS"
+        },
+        {
+          "name": "Song",
+          "type": "SONG_NAME"
+        },
+        {
+          "name": "Pronoun",
+          "type": "PRONOUN"
+        }
+      ]
+    },
+    {
+      "intent": "FindSong",
+      "slots": [
+        {
+          "name": "Artist",
+          "type": "ARTIST_NAME"
+        },
+        {
+          "name": "Lyrics",
+          "type": "LYRICS"
+        }
+      ]
+    },
+    {
+      "intent": "SayLyrics",
+      "slots": [
+        {
+          "name": "Lyrics",
+          "type": "LYRICS"
+        },
+        {
+          "name": "Artist",
+          "type": "ARTIST_NAME"
+        },
+        {
+          "name": "Song",
+          "type": "SONG_NAME"
+        }
+      ]
+    },
+    {
+      "intent": "WhichArtist",
+      "slots": [
+        {
+          "name": "Artist",
+          "type": "ARTIST_NAME"
+        }
+      ]
+    },
+    {
+      "intent": "IdkIntent"
+    },
+    {
+      "intent": "AMAZON.YesIntent"
+    },
+    {
+      "intent": "AMAZON.NoIntent"
+    },
+    {
+      "intent": "AMAZON.StopIntent"
+    },
+    {
+      "intent": "AMAZON.CancelIntent"
+    },
+    {
+      "intent": "AMAZON.HelpIntent"
+    }
+  ]
+}

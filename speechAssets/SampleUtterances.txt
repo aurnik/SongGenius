@@ -1,0 +1,48 @@
+ChooseOption {Action}
+ChooseOption to {Action}
+ChooseOption I want to {Action}
+
+SayLyrics {Lyrics}
+SayLyrics the lyrics are {Lyrics}
+SayLyrics {Lyrics} by {Artist}
+SayLyrics {Lyrics} in the song {Song}
+SayLyrics {Lyrics} in the song {Song} by {Artist}
+
+WhichArtist {Artist}
+WhichArtist the artist is {Artist}
+WhichArtist it's by {Artist}
+WhichArtist the name of the artist is {Artist}
+
+IdkIntent I don't know
+IdkIntent I'm not sure
+IdkIntent I forget
+IdkIntent I don't remember
+
+DefineLyrics what does {Artist} mean when {Pronoun} say {Lyrics}
+DefineLyrics what does {Artist} mean when {Pronoun} says {Lyrics}
+DefineLyrics what did {Artist} mean when {Pronoun} said {Lyrics}
+DefineLyrics what does {Artist} mean when {Pronoun} say {Lyrics} in {Song}
+DefineLyrics what does {Artist} mean when {Pronoun} says {Lyrics} in {Song}
+DefineLyrics what did {Artist} mean when {Pronoun} said {Lyrics} in {Song}
+DefineLyrics what does {Artist} mean when {Pronoun} say {Lyrics} in the song {Song}
+DefineLyrics what does {Artist} mean when {Pronoun} says {Lyrics} in the song {Song}
+DefineLyrics what did {Artist} mean when {Pronoun} said {Lyrics} in the song {Song}
+DefineLyrics in {Song} what does {Artist} mean when {Pronoun} say {Lyrics}
+DefineLyrics in {Song} what does {Artist} mean when {Pronoun} says {Lyrics}
+DefineLyrics in {Song} what did {Artist} mean when {Pronoun} said {Lyrics}
+DefineLyrics in the song {Song} what does {Artist} mean when {Pronoun} say {Lyrics}
+DefineLyrics in the song {Song} what does {Artist} mean when {Pronoun} says {Lyrics}
+DefineLyrics in the song {Song} what did {Artist} mean when {Pronoun} said {Lyrics}
+
+FindSong what song goes {Lyrics}
+FindSong what song has the lyrics {Lyrics}
+FindSong what song is {Lyrics} from
+FindSong what's the song that goes {Lyrics}
+FindSong what {Artist} song goes {Lyrics}
+FindSong what {Artist} song has the lyrics {Lyrics}
+FindSong what {Artist} song is {Lyrics} from
+FindSong what's the {Artist} song that goes {Lyrics}
+FindSong what song by {Artist} goes {Lyrics}
+FindSong what's the song by {Artist} that goes {Lyrics}
+FindSong what's the song where {Artist} says {Lyrics}
+FindSong what's the song where {Artist} say {Lyrics}
