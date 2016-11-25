@@ -17,7 +17,7 @@
 /**
  * App ID for the skill
  */
-var APP_ID = undefined; // your app id
+var APP_ID = undefined; // Your APP ID
 
 var http = require('http');
 
@@ -64,7 +64,6 @@ SongGenius.prototype.eventHandlers.onSessionEnded = function (sessionEndedReques
  */
 SongGenius.prototype.intentHandlers = {
     "ChooseOption": function (intent, session, response) {
-        console.log("choose option");
         var actionSlot = intent.slots.Action;
         if (actionSlot && actionSlot.value) {
             handleActionDialogRequest(intent, session, response);
@@ -74,48 +73,49 @@ SongGenius.prototype.intentHandlers = {
     },
 
     "DefineLyrics": function (intent, session, response) {
-        var artistSlot = intent.slots.Artist;
-        var songSlot = intent.slots.Song;
-        var lyricsSlot = intent.slots.Lyrics;
-        if (lyricsSlot && lyricsSlot.value) {
-            console.log("lyrics: " + lyricsSlot.value);
-            session.attributes.lyrics = lyricsSlot.value;
-            session.attributes.action = "defineLyrics";
-            if(artistSlot && artistSlot.value) {
-                session.attributes.artist = artistSlot.value;
+        session.attributes.action = "defineLyrics";
+        if(intent.slots) {
+            var artistSlot = intent.slots.Artist;
+            var songSlot = intent.slots.Song;
+            var lyricsSlot = intent.slots.Lyrics;
+            
+            if (lyricsSlot && lyricsSlot.value) {
+                session.attributes.lyrics = lyricsSlot.value;
+                if(artistSlot && artistSlot.value) {
+                    session.attributes.artist = artistSlot.value;
+                }
+                if(songSlot && songSlot.value) {
+                    session.attributes.songName = songSlot.value;
+                }
+                handleSongSearchRequest(intent, session, response);
             }
-            if(songSlot && songSlot.value) {
-                session.attributes.songName = songSlot.value;
-            }
-            handleSongSearchRequest(intent, session, response);
         } else {
             handleMissingInfo(intent, session, response);
         }
     },
 
     "FindSong": function (intent, session, response) {
-        var artistSlot = intent.slots.Artist;
-        var lyricsSlot = intent.slots.Lyrics;
-        if (lyricsSlot && lyricsSlot.value) {
-            console.log("lyrics: " + lyricsSlot.value);
-            session.attributes.lyrics = lyricsSlot.value;
-            session.attributes.action = "findSong";
-            if(artistSlot && artistSlot.value) {
-                session.attributes.artist = artistSlot.value;
+        session.attributes.action = "findSong";
+        if(intent.slots) {
+            var artistSlot = intent.slots.Artist;
+            var lyricsSlot = intent.slots.Lyrics;
+            if (lyricsSlot && lyricsSlot.value) {
+                session.attributes.lyrics = lyricsSlot.value;
+                if(artistSlot && artistSlot.value) {
+                    session.attributes.artist = artistSlot.value;
+                }
+                handleSongSearchRequest(intent, session, response);
             }
-            handleSongSearchRequest(intent, session, response);
         } else {
             handleMissingInfo(intent, session, response);
         }
     },
 
     "SayLyrics": function (intent, session, response) {
-        console.log("lyrics");
         handleLyricInfo(intent, session, response);
     },
 
     "WhichArtist": function (intent, session, response) {
-        console.log("artist");
         handleArtistInfo(intent, session, response);
     },
 
@@ -148,7 +148,7 @@ SongGenius.prototype.intentHandlers = {
 
 // -------------------------- SongGenius Domain Specific Business Logic --------------------------
 
-var token = undefined; // your Genius token
+var token = undefined; // Your Genius token
 
 function handleWelcomeRequest(response) {
     var speechOutput = {
@@ -182,6 +182,7 @@ function handleYesRequest(intent, session, response) {
                 else {
                     // saying yes to correct lyrics
                     session.attributes.lyricsConfirmed = true;
+                    handleSongSearchRequest(intent, session, response);
                 }
             }
             else { // yes this is the correct song
@@ -290,6 +291,9 @@ function handleLyricInfo(intent, session, response) {
  * Handles the case where the user gave the Artist's name
  */
 function handleArtistInfo(intent, session, response) {
+    if(intent.slots.Artist.value.toLowerCase() == "yes") {
+        return handleYesRequest(intent, session, response);
+    }
     var artistValue = getArtistFromIntent(intent, false),
         repromptText,
         speechOutput;
@@ -319,7 +323,7 @@ function handleArtistInfo(intent, session, response) {
 }
 
 /**
- * Handles the dialog step where the user provides a city
+ * catchall for dialogue
  */
 function handleActionDialogRequest(intent, session, response) {
 
@@ -329,7 +333,7 @@ function handleActionDialogRequest(intent, session, response) {
     if (actionValue.error) {
         speechOutput = "What do you want to do: look up lyrics or find a song?";
         repromptText = "Sorry I didn't really understand that. " + speechOutput;
-        response.ask(speechOutput, repromptText);
+        response.ask(repromptText, repromptText);
         return;
     }
 
@@ -356,7 +360,6 @@ function handleActionDialogRequest(intent, session, response) {
  * Handles the song search
  */
 function handleSongSearchRequest(intent, session, response) {
-    console.log("song search");
     var lyrics = session.attributes.lyrics,
         artist = session.attributes.artist,
         title = session.attributes.songName,
@@ -381,76 +384,97 @@ function handleSongSearchRequest(intent, session, response) {
         }
     }
     else { // find song for first time
-        console.log("searching with Genius API");
-        console.log("orig lyrics: " + lyrics);
         lyricWords = lyrics.split(" ");
-        if(lyricWords.length > 5) {
+        if(lyricWords.length > 7) {
             // for long enough lyrics, filter out uncommon words
             // to avoid things that may have been misheard
             // leads to better search results
             lyrics = lyricWords.filter(checkWord).join(" ");
-            console.log("new search: " + lyrics);
         }
         
-        
-        getJSON("http://api.genius.com/search?q="+lyrics.replace(' ', '%20')+"&access_token=" + token, function(err,data){
-            if(!err) {
-                var results = data.response.hits;
-                results = results.filter(function(r) {
-                    return r.type == "song";
-                });
-                results = results.map(function(r, i) {
-                    var song = r.result;
-                    return {
-                        title: song.title,
-                        id: song.id,
-                        artist: song.primary_artist.name,
-                        index: i,
-                        popularity: song.pyongs_count ? song.pyongs_count : 0,
-                        annotationNum: song.annotation_count
-                    };
-                });
-                results.sort(function(a,b) {
-                    return b.popularity - a.popularity;
-                });
-                results.map(function(r,i) {
-                    r.index = i;
-                    return r;
-                });
-
-                var resultsFiltArtist = [];
-                session.attributes.results = results;
-                if(artist) {
-                    resultsFiltArtist = results.filter(function(song) {
-                        return song.artist.toLowerCase().indexOf(artist.toLowerCase()) > -1 || similarity(song.artist.toLowerCase(), artist.toLowerCase()) > 0.7;
-                    });
-                    if(resultsFiltArtist.length > 0) {
-                        session.attributes.results = resultsFiltArtist.map(function(r,i) {
-                            r.index = i;
-                            return r;
-                        });
-                    }
-                }
-                
-                var firstResult = session.attributes.song = session.attributes.results[0];
-
-                if(session.attributes.action == "findSong") {
-                    console.log("found the song");
-                    speechOutput = "Is the song " + firstResult.title + " by " + firstResult.artist + "?";
-                    repromptText = "There are " + (session.attributes.results.length - 1 - firstResult.index).toString() + " more results, but " + speechOutput;
-                    response.ask(speechOutput, repromptText);
-                    return;
-                }
-                else {
-                    console.log("ready to search this song's lyrics");
-                    speechOutput = "The song we're looking at is " + firstResult.title + " by " + firstResult.artist + ", right?";
-                    repromptText = "There are " + (session.attributes.results.length - 1 - firstResult.index).toString() + " more results, but " + speechOutput;
-                    response.ask(speechOutput, repromptText);
-                    return;
-                }
-                
+        http.get("http://api.genius.com/search?q="+lyrics.replace(' ', '%20')+"&access_token=" + token, function (res) {
+            
+            var statusCode = res.statusCode;
+            var contentType = res.headers['content-type'];
+            
+            var error = void 0;
+            if (statusCode !== 200) {
+                error = new Error('Request Failed.\n' + ('Status Code: ' + statusCode));
             }
+            if (error) {
+                // consume response data to free up memory
+                res.resume();
+                return;
+            }
+            res.setEncoding('utf8');
+            var rawData = '';
+            res.on('data', function (chunk) {
+                return rawData += chunk;
+            });
+            res.on('end', function () {
+                try {
+                    var data = JSON.parse(rawData);
+                    var results = data.response.hits;
+                    results = results.filter(function(r) {
+                        return r.type == "song";
+                    });
+                    results = results.map(function(r, i) {
+                        var song = r.result;
+                        return {
+                            title: song.title,
+                            id: song.id,
+                            artist: song.primary_artist.name,
+                            index: i,
+                            popularity: song.pyongs_count ? song.pyongs_count : 0,
+                            annotationNum: song.annotation_count
+                        };
+                    });
+                    results.sort(function(a,b) {
+                        return b.popularity - a.popularity;
+                    });
+                    results.map(function(r,i) {
+                        r.index = i;
+                        return r;
+                    });
+                    
+                    var resultsFiltArtist = [];
+                    session.attributes.results = results;
+                    if(artist) {
+                        resultsFiltArtist = results.filter(function(song) {
+                            return song.artist.toLowerCase().indexOf(artist.toLowerCase()) > -1 || similarity(song.artist.toLowerCase(), artist.toLowerCase()) > 0.7;
+                        });
+                        if(resultsFiltArtist.length > 0) {
+                            session.attributes.results = resultsFiltArtist.map(function(r,i) {
+                                r.index = i;
+                                return r;
+                            });
+                        }
+                    }
+                    
+                    var firstResult = session.attributes.song = session.attributes.results[0];
+    
+                    if(session.attributes.action == "findSong") {
+                        speechOutput = "Is the song " + firstResult.title + " by " + firstResult.artist + "?";
+                        repromptText = "There are " + (session.attributes.results.length - 1 - firstResult.index).toString() + " more results, but " + speechOutput;
+                        response.ask(speechOutput, repromptText);
+                        return;
+                    }
+                    else {
+                        speechOutput = "The song we're looking at is " + firstResult.title + " by " + firstResult.artist + ", right?";
+                        repromptText = "There are " + (session.attributes.results.length - 1 - firstResult.index).toString() + " more results, but " + speechOutput;
+                        response.ask(speechOutput, repromptText);
+                        return;
+                    }
+                } catch (e) {
+                    console.log(e.message);
+                    return;
+                }
+            });
+        }).on('error', function (e) {
+            console.log(e.message);
+            return;
         });
+       
     }
 }
 
@@ -484,11 +508,9 @@ function handleLyricDefineRequest(intent, session, response) {
                 results = results.sort(function(a,b) {
                     return b.similarity - a.similarity;
                 });
-                console.log(JSON.stringify(results));
                 if(results.length > 0 && results[0].similarity > 0.3) {
                     // say the lyric meaning
                     var meaning = results[0].annotation;
-                    console.log(meaning);
                     var speechOutput = "Here is the full lyric. " + results[0].lyric.replace("\n",". ") + ". Here's the meaning I found. " + meaning.replace("\n",". ");
                     response.tell(speechOutput);
                     session.attributes = {};
@@ -538,37 +560,40 @@ function handleMissingInfo(intent, session, response) {
  * Gets the action from the intent, or returns an error
  */
 function getActionFromIntent(intent, assignDefault) {
-
-    var actionSlot = intent.slots.Action;
-    // slots can be missing, or slots can be provided but with empty value.
-    // must test for both.
-    if (!actionSlot || !actionSlot.value) {
-        if (!assignDefault) {
-            return {
-                error: true
+    if(intent.slots) {
+        var actionSlot = intent.slots.Action;
+        // slots can be missing, or slots can be provided but with empty value.
+        // must test for both.
+        if (!actionSlot || !actionSlot.value) {
+            if (!assignDefault) {
+                return {
+                    error: true
+                }
+            } else {
+                return {
+                    action: 'findSong'
+                }
             }
         } else {
-            return {
-                action: 'findSong'
+            // get action from value
+            var actionName = actionSlot.value;
+            if (actionName.indexOf("lyric") != -1) {
+                return {
+                    action: 'defineLyrics'
+                }
+            } else if (actionName.indexOf("song") != -1) {
+                return {
+                    action: 'findSong'
+                }
+            } else {
+                return {
+                    error: true
+                }
             }
         }
-    } else {
-        // get action from value
-        var actionName = actionSlot.value;
-        console.log("action: " + actionSlot.value);
-        if (actionName.indexOf("lyric") != -1) {
-            return {
-                action: 'defineLyrics'
-            }
-        } else if (actionName.indexOf("song") != -1) {
-            return {
-                action: 'findSong'
-            }
-        } else {
-            return {
-                error: true
-            }
-        }
+    }
+    return {
+        error: true
     }
 }
 
@@ -585,7 +610,6 @@ function getLyricsFromIntent(intent, assignDefault) {
             error: true
         }
     } else {
-        console.log("lyrics: " + lyricsSlot.value);
         return {
             lyrics: lyricsSlot.value
         };
@@ -607,7 +631,6 @@ function getArtistFromIntent(intent, assignDefault) {
     } else {
         // get artist from value
         var artistName = artistSlot.value;
-        console.log("artist: " + artistSlot.value);
         return {
             artist: artistName
         };
@@ -628,7 +651,6 @@ function getSongFromIntent(intent, assignDefault) {
         }
     } else {
         var songInfo = {};
-        console.log("song: " + songSlot.value);
 
         if (artistSlot && artistSlot.value) {
             songInfo.artist = artistSlot.value;
@@ -644,7 +666,7 @@ var getJSON = function(url, callback) {
     http.get(url, function (res) {
         var statusCode = res.statusCode;
         var contentType = res.headers['content-type'];
-
+        
         var error = void 0;
         if (statusCode !== 200) {
             error = new Error('Request Failed.\n' + ('Status Code: ' + statusCode));
@@ -655,7 +677,6 @@ var getJSON = function(url, callback) {
             res.resume();
             return callback(error);
         }
-
         res.setEncoding('utf8');
         var rawData = '';
         res.on('data', function (chunk) {
@@ -671,7 +692,6 @@ var getJSON = function(url, callback) {
             }
         });
     }).on('error', function (e) {
-        console.log('Got error: ' + e.message);
         return callback(e);
     });
 };
